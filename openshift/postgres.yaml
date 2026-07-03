@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: postgres } }
+  template:
+    metadata: { labels: { app: postgres } }
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports: [{ containerPort: 5432 }]
+          envFrom: [{ secretRef: { name: ticketing-secret } }]
+          env:
+            - { name: PGDATA, value: /var/lib/postgresql/data/pgdata }
+          volumeMounts:
+            - { name: pgdata, mountPath: /var/lib/postgresql/data }
+          resources:
+            requests: { cpu: "50m", memory: "128Mi" }
+            limits:   { cpu: "500m", memory: "512Mi" }
+          readinessProbe:
+            exec: { command: ["pg_isready","-U","ticketing_user","-d","ticketing"] }
+            initialDelaySeconds: 5
+          livenessProbe:
+            exec: { command: ["pg_isready","-U","ticketing_user","-d","ticketing"] }
+            initialDelaySeconds: 15
+      volumes:
+        - name: pgdata
+          persistentVolumeClaim: { claimName: pgdata }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: { name: pgdata }
+spec:
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 1Gi } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: postgres }
+spec:
+  selector: { app: postgres }
+  ports: [{ port: 5432, targetPort: 5432 }]

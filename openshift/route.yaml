@@ -1,6 +1,7 @@
 apiVersion: route.openshift.io/v1
 kind: Route
-metadata: { name: frontend }
+metadata:
+  name: frontend
 spec:
   to: { kind: Service, name: frontend }
   port: { targetPort: 3000 }
@@ -9,6 +10,8 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: api
+  annotations:
+    haproxy.router.openshift.io/rewrite-target: /
 spec:
   path: /api
   to: { kind: Service, name: api }

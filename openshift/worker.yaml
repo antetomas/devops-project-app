@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+spec:
+  replicas: 1
+  selector: { matchLabels: { app: worker } }
+  template:
+    metadata: { labels: { app: worker } }
+    spec:
+      containers:
+        - name: worker
+          image: ghcr.io/antetomas/ticketing-worker:latest
+          envFrom: [{ secretRef: { name: ticketing-secret } }]
+          env:
+            - { name: PGHOST, value: postgres }
+            - { name: PGPORT, value: "5432" }
+            - { name: REDIS_HOST, value: redis }
+            - { name: REDIS_PORT, value: "6379" }
+          resources:
+            requests: { cpu: "50m", memory: "64Mi" }
+            limits:   { cpu: "250m", memory: "256Mi" }

@@ -13,6 +13,7 @@ spec:
           image: ghcr.io/antetomas/ticketing-frontend:latest
           ports: [{ containerPort: 3000 }]
           env:
+            - { name: PORT, value: "3000" }
             - { name: API_BASE_URL, value: "http://api:8080" }
           resources:
             requests: { cpu: "50m", memory: "64Mi" }
